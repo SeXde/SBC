@@ -1,0 +1,7 @@
+server:
+  servlet:
+    context-path: /sbc/api
+  port: 8081
+spring:
+  banner:
+    location=classpath: banner.txt
