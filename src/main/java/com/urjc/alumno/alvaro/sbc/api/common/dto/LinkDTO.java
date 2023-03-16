@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
-public class NodeDTO {
+public class LinkDTO {
 
-    private String iri;
-    private String name;
+    private String edgeName;
+    private List<NodeDTO> nodes;
 
 }

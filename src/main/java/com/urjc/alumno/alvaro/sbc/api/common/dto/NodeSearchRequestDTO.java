@@ -14,7 +14,7 @@ public class NodeSearchRequestDTO {
 
     @Schema(description = "Endpoint where querying sparql", example = "http://dbpedia.org/sparql")
     private String endpoint;
-    @Schema(description = "Desired node", example = "<http://dbpedia.org/resource/José_Luis_Rodríguez_Zapatero>")
+    @Schema(description = "Desired node", example = "http://dbpedia.org/resource/José_Luis_Rodríguez_Zapatero")
     private String iri;
 
 }

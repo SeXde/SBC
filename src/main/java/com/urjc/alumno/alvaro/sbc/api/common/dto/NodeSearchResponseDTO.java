@@ -11,9 +11,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Data
-public class NodeConnectionDTO {
+public class NodeSearchResponseDTO {
 
-    private String nodeEdge;
-    private List<String> nodes;
+    private NodeDTO originNode;
+    private List<LinkDTO> links;
 
 }

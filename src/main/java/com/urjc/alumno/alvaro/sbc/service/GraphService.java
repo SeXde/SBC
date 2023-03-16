@@ -1,7 +1,9 @@
 package com.urjc.alumno.alvaro.sbc.service;
 
+import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeSearchResponseDTO;
+
 public interface GraphService {
 
-    Object getNode(String endpoint, String iri);
+    NodeSearchResponseDTO getNode(String endpoint, String iri);
 
 }
