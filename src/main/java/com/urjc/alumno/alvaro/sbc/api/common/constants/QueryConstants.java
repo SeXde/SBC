@@ -7,5 +7,6 @@ public final class QueryConstants {
     public static final String PROPERTIES = "properties";
     public static final String HAS_VALUE = "hasValue";
     public static final String IS_VALUE_OF = "isValueOf";
+    public static final String COUNT = "count";
 
 }

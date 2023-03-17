@@ -5,42 +5,51 @@ import com.urjc.alumno.alvaro.sbc.api.common.dto.LinkDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeSearchResponseDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.enums.FlowEnum;
+import com.urjc.alumno.alvaro.sbc.api.common.utils.IRIUtils;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.JenaUtils;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.QueryUtils;
 import com.urjc.alumno.alvaro.sbc.service.GraphService;
+import com.urjc.alumno.alvaro.sbc.service.exception.SBCException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
+
+import static com.urjc.alumno.alvaro.sbc.api.common.constants.QueryConstants.COUNT;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class GraphServiceImpl implements GraphService {
 
+    @NotNull
+    @Value("${query.limit}")
+    private String queryLimit;
+
     @Override
     public NodeSearchResponseDTO getNode(final String endpoint, final String iri) {
 
+        checkIri(iri, endpoint);
         final NodeSearchResponseDTO nodeSearchResponseDTO = new NodeSearchResponseDTO();
         nodeSearchResponseDTO.setOriginNode(NodeDTO.builder().iri(iri).build());
         nodeSearchResponseDTO.setLinks(new ArrayList<>());
-        final ResultSet nodeConnections = JenaUtils.doQuery(endpoint, QueryUtils.buildSelect(iri));
-
-        log.info("Received response from {} with {} vars", endpoint, nodeConnections.getResultVars());
-
-        nodeConnections.forEachRemaining(querySolution ->
-
-                buildLink(querySolution.get(QueryConstants.PROPERTY),
+        nodesAction(QueryUtils.buildSelect(iri, queryLimit), endpoint, (querySolution) ->
+                buildLink(
+                        querySolution.get(QueryConstants.PROPERTY),
                         querySolution.get(QueryConstants.HAS_VALUE),
                         querySolution.get(QueryConstants.IS_VALUE_OF),
                         nodeSearchResponseDTO
                 )
-
         );
 
         return nodeSearchResponseDTO;
@@ -108,6 +117,57 @@ public class GraphServiceImpl implements GraphService {
             destinationNode.setName(StringUtils.isBlank(rdfNode.asLiteral().getString()) ? null : rdfNode.asLiteral().getString());
 
         }
+
+    }
+
+    private void checkIri(final String iri, final String endpoint) {
+
+        if (!IRIUtils.isValidIri(iri)) {
+
+            log.error("{} is not a valid IRI", iri);
+            throw new SBCException(String.format("%s is not a valid IRI, please use full iri name, we don't use 'PREFIX'",
+                    iri), HttpStatus.BAD_REQUEST
+            );
+
+        }
+
+        nodesAction(
+                QueryUtils.buildExists(iri),
+                endpoint,
+                (node) -> {
+                    if (Objects.equals("0", node.get(COUNT).asLiteral().getString())) {
+
+                        log.error("{} doesn't exist", iri);
+                        throw new SBCException(String.format("%s doesn't exist for endpoint %s, please introduce a valid node",
+                                iri, endpoint), HttpStatus.BAD_REQUEST
+                        );
+
+                    }
+                }
+        );
+
+        nodesAction(
+                QueryUtils.buildIsProperty(iri),
+                endpoint,
+                (node) -> {
+                    if (!Objects.equals("0", node.get(COUNT).asLiteral().getString())) {
+
+                        log.error("{} is an edge", iri);
+                        throw new SBCException(String.format("%s is not a correct node, input must be only nodes and not edges",
+                                iri), HttpStatus.BAD_REQUEST
+                        );
+
+                    }
+                }
+        );
+
+    }
+
+    private void nodesAction(final String query, final String endpoint, final Consumer<QuerySolution> action) {
+
+        final ResultSet edgeSet = JenaUtils.doQuery(endpoint, query);
+        log.info("Received response from {} with {} vars", endpoint, edgeSet.getResultVars());
+        edgeSet.forEachRemaining(action);
 
     }
 

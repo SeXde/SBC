@@ -2,7 +2,7 @@ package com.urjc.alumno.alvaro.sbc.api.common.utils;
 
 public final class QueryUtils {
 
-    public static String buildSelect(final String iri) {
+    public static String buildSelect(final String iri, final String queryLimit) {
 
         return
                 String.format(
@@ -12,24 +12,40 @@ public final class QueryUtils {
                           { <%s> ?property ?hasValue }
                           UNION
                           { ?isValueOf ?property <%s> }
-                        }
-                        """, iri, iri
+                        } limit %s
+                        """, iri, iri, queryLimit
                 );
 
     }
 
-    public String buildIsProperty(final String iri) {
+    public static String buildIsProperty(final String iri) {
 
         return
                 String.format(
                         """
-                        SELECT distinct count(?property) AS ?properties
+                        SELECT distinct (count(?isValueOf) as ?count)
                         WHERE {
-                          { <%s> ?property ?hasValue }
-                          UNION
-                          { ?isValueOf ?property <%s> }
+                            ?isValueOf <%s> ?hasValue
                         }
-                        """, iri, iri
+                        """, iri
+                );
+
+    }
+
+    public static String buildExists(final String iri) {
+
+        return
+                String.format(
+                        """
+                        SELECT distinct (count(?isValueOf) as ?count)
+                        WHERE {
+                            { <%s> ?property ?hasValue }
+                            UNION
+                            { ?isValueOf ?property <%s> }
+                            UNION
+                            { ?isValueOf <%s> ?hasValue }
+                        }
+                        """, iri, iri, iri
                 );
 
     }

@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class SBCErrorDTO {
 
     private String message;
-    private StackTraceElement[] stackTrace;
+    private int httpStatus;
 
 }

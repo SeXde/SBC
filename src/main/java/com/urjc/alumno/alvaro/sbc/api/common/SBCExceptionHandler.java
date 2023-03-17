@@ -20,7 +20,7 @@ public class SBCExceptionHandler extends ResponseEntityExceptionHandler {
                         SBCErrorDTO
                                 .builder()
                                 .message(sbcException.getErrorMessage())
-                                .stackTrace(sbcException.getStackTrace())
+                                .httpStatus(sbcException.getStatus().value())
                                 .build()
                 );
     }
@@ -33,7 +33,7 @@ public class SBCExceptionHandler extends ResponseEntityExceptionHandler {
                         SBCErrorDTO
                                 .builder()
                                 .message(exception.getMessage())
-                                .stackTrace(exception.getStackTrace())
+                                .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                 .build()
                 );
     }
