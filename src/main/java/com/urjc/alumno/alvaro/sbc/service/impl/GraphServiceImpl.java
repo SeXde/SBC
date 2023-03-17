@@ -4,18 +4,18 @@ import com.urjc.alumno.alvaro.sbc.api.common.constants.QueryConstants;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.LinkDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeSearchResponseDTO;
+import com.urjc.alumno.alvaro.sbc.api.common.enums.FlowEnum;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.JenaUtils;
 import com.urjc.alumno.alvaro.sbc.service.GraphService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.jena.query.QuerySolution;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +56,7 @@ public class GraphServiceImpl implements GraphService {
 
         }
 
+        final boolean isValueOf = Objects.isNull(value);
         final String edge = property.asResource().getLocalName();
         final LinkDTO linkDTO = nodeSearchResponseDTO
                 .getLinks()
@@ -63,14 +64,32 @@ public class GraphServiceImpl implements GraphService {
                 .filter(link -> Objects.equals(edge, link.getEdgeName()))
                 .findFirst()
                 .orElseGet(() -> {
-                    final LinkDTO newLinkDTO = new LinkDTO(edge, new ArrayList<>());
+
+                    final LinkDTO newLinkDTO = new LinkDTO(
+                            edge,
+                            isValueOf ? FlowEnum.IN : FlowEnum.OUT,
+                            new ArrayList<>()
+                    );
                     nodeSearchResponseDTO.getLinks().add(newLinkDTO);
                     return newLinkDTO;
+
                 });
 
         final NodeDTO destinationNode = new NodeDTO();
-        buildDestinationNode(Objects.isNull(value) ? valueOf : value, destinationNode);
-        linkDTO.getNodes().add(destinationNode);
+        buildDestinationNode(isValueOf ? valueOf : value, destinationNode);
+        if (
+                (!Objects.isNull(destinationNode.getIri())
+                        || !StringUtils.isBlank(destinationNode.getName()))
+                        && linkDTO
+                        .getNodes()
+                        .stream()
+                        .noneMatch(node ->
+                                Objects.equals(node.getIri(), destinationNode.getIri())
+                                        && Objects.equals(node.getName(), destinationNode.getName())
+                        )
+        ) {
+            linkDTO.getNodes().add(destinationNode);
+        }
 
     }
 
@@ -78,12 +97,12 @@ public class GraphServiceImpl implements GraphService {
 
         if (rdfNode.isResource()) {
 
-            destinationNode.setIri(rdfNode.asResource().getURI());
-            destinationNode.setName(rdfNode.asResource().getLocalName());
+            destinationNode.setIri(StringUtils.isBlank(rdfNode.asResource().getURI()) ? null : rdfNode.asResource().getURI());
+            destinationNode.setName(StringUtils.isBlank(rdfNode.asResource().getLocalName()) ? null : rdfNode.asResource().getLocalName());
 
         } else {
 
-            destinationNode.setName(rdfNode.asLiteral().getString());
+            destinationNode.setName(StringUtils.isBlank(rdfNode.asLiteral().getString()) ? null : rdfNode.asLiteral().getString());
 
         }
 
