@@ -6,6 +6,7 @@ import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeSearchResponseDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.enums.FlowEnum;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.JenaUtils;
+import com.urjc.alumno.alvaro.sbc.api.common.utils.QueryUtils;
 import com.urjc.alumno.alvaro.sbc.service.GraphService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,7 @@ public class GraphServiceImpl implements GraphService {
         final NodeSearchResponseDTO nodeSearchResponseDTO = new NodeSearchResponseDTO();
         nodeSearchResponseDTO.setOriginNode(NodeDTO.builder().iri(iri).build());
         nodeSearchResponseDTO.setLinks(new ArrayList<>());
-        final ResultSet nodeConnections = JenaUtils.getNodeConnections(endpoint, iri);
+        final ResultSet nodeConnections = JenaUtils.doQuery(endpoint, iri, QueryUtils.buildSelect(iri));
 
         nodeConnections.forEachRemaining(querySolution ->
 
