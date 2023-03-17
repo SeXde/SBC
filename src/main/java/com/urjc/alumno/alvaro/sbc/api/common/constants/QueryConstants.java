@@ -4,6 +4,7 @@ public final class QueryConstants {
 
     private QueryConstants() { }
     public static final String PROPERTY = "property";
+    public static final String PROPERTIES = "properties";
     public static final String HAS_VALUE = "hasValue";
     public static final String IS_VALUE_OF = "isValueOf";
 

@@ -29,7 +29,9 @@ public class GraphServiceImpl implements GraphService {
         final NodeSearchResponseDTO nodeSearchResponseDTO = new NodeSearchResponseDTO();
         nodeSearchResponseDTO.setOriginNode(NodeDTO.builder().iri(iri).build());
         nodeSearchResponseDTO.setLinks(new ArrayList<>());
-        final ResultSet nodeConnections = JenaUtils.doQuery(endpoint, iri, QueryUtils.buildSelect(iri));
+        final ResultSet nodeConnections = JenaUtils.doQuery(endpoint, QueryUtils.buildSelect(iri));
+
+        log.info("Received response from {} with {} vars", endpoint, nodeConnections.getResultVars());
 
         nodeConnections.forEachRemaining(querySolution ->
 
