@@ -2,6 +2,8 @@ package com.urjc.alumno.alvaro.sbc.api.common.utils;
 
 public final class QueryUtils {
 
+    private QueryUtils() { }
+
     public static String buildSelect(final String iri, final String queryLimit) {
 
         return
