@@ -10,14 +10,12 @@ import com.urjc.alumno.alvaro.sbc.api.common.utils.JenaUtils;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.QueryUtils;
 import com.urjc.alumno.alvaro.sbc.service.GraphService;
 import com.urjc.alumno.alvaro.sbc.service.exception.SBCException;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.RDFNode;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -32,18 +30,19 @@ import static com.urjc.alumno.alvaro.sbc.api.common.constants.QueryConstants.COU
 @Slf4j
 public class GraphServiceImpl implements GraphService {
 
-    @NotNull
-    @Value("${query.limit}")
-    private String queryLimit;
-
     @Override
-    public NodeSearchResponseDTO getNode(final String endpoint, final String iri) {
+    public NodeSearchResponseDTO getNode(final String endpoint, final String iri, final String size, final boolean verifyNode) {
 
-        checkIri(iri, endpoint);
+        if (verifyNode) {
+
+            checkIri(iri, endpoint);
+
+        }
+
         final NodeSearchResponseDTO nodeSearchResponseDTO = new NodeSearchResponseDTO();
         nodeSearchResponseDTO.setOriginNode(NodeDTO.builder().iri(iri).build());
         nodeSearchResponseDTO.setLinks(new ArrayList<>());
-        nodesAction(QueryUtils.buildSelect(iri, queryLimit), endpoint, (querySolution) ->
+        nodesAction(QueryUtils.buildSelect(iri, size), endpoint, (querySolution) ->
                 buildLink(
                         querySolution.get(QueryConstants.PROPERTY),
                         querySolution.get(QueryConstants.HAS_VALUE),
@@ -109,12 +108,18 @@ public class GraphServiceImpl implements GraphService {
 
         if (rdfNode.isResource()) {
 
-            destinationNode.setIri(StringUtils.isBlank(rdfNode.asResource().getURI()) ? null : rdfNode.asResource().getURI());
-            destinationNode.setName(StringUtils.isBlank(rdfNode.asResource().getLocalName()) ? null : rdfNode.asResource().getLocalName());
+            destinationNode.setIri(StringUtils.isBlank(rdfNode.asResource().getURI())
+                    ? null
+                    : rdfNode.asResource().getURI());
+            destinationNode.setName(StringUtils.isBlank(rdfNode.asResource().getLocalName())
+                    ? null
+                    : rdfNode.asResource().getLocalName());
 
         } else {
 
-            destinationNode.setName(StringUtils.isBlank(rdfNode.asLiteral().getString()) ? null : rdfNode.asLiteral().getString());
+            destinationNode.setName(StringUtils.isBlank(rdfNode.asLiteral().getString())
+                    ? null
+                    : rdfNode.asLiteral().getString());
 
         }
 
@@ -131,10 +136,7 @@ public class GraphServiceImpl implements GraphService {
 
         }
 
-        nodesAction(
-                QueryUtils.buildExists(iri),
-                endpoint,
-                (node) -> {
+        nodesAction(QueryUtils.buildExists(iri), endpoint, (node) -> {
                     if (Objects.equals("0", node.get(COUNT).asLiteral().getString())) {
 
                         log.error("{} doesn't exist", iri);
@@ -146,10 +148,7 @@ public class GraphServiceImpl implements GraphService {
                 }
         );
 
-        nodesAction(
-                QueryUtils.buildIsProperty(iri),
-                endpoint,
-                (node) -> {
+        nodesAction(QueryUtils.buildIsProperty(iri), endpoint, (node) -> {
                     if (!Objects.equals("0", node.get(COUNT).asLiteral().getString())) {
 
                         log.error("{} is an edge", iri);

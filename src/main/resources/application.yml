@@ -9,4 +9,4 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 query:
-  limit: 200
+  limit: 2000
