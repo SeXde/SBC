@@ -51,6 +51,12 @@ public class GraphServiceImpl implements GraphService {
                 )
         );
 
+        log.info(
+                "Node {} was successfully built with {} connections",
+                nodeSearchResponseDTO.getOriginNode().getIri(),
+                nodeSearchResponseDTO.getLinks().size()
+        );
+
         return nodeSearchResponseDTO;
 
     }
@@ -71,9 +77,9 @@ public class GraphServiceImpl implements GraphService {
         final String edge = property.asResource().getLocalName();
         final LinkDTO linkDTO = nodeSearchResponseDTO
                 .getLinks()
-                .stream()
+                .parallelStream()
                 .filter(link -> Objects.equals(edge, link.getEdgeName()))
-                .findFirst()
+                .findAny()
                 .orElseGet(() -> {
 
                     final LinkDTO newLinkDTO = new LinkDTO(
@@ -93,7 +99,7 @@ public class GraphServiceImpl implements GraphService {
                         || !StringUtils.isBlank(destinationNode.getName()))
                         && linkDTO
                         .getNodes()
-                        .stream()
+                        .parallelStream()
                         .noneMatch(node ->
                                 Objects.equals(node.getIri(), destinationNode.getIri())
                                         && Objects.equals(node.getName(), destinationNode.getName())
