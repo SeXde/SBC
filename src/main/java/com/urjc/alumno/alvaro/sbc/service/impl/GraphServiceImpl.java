@@ -4,6 +4,7 @@ import com.urjc.alumno.alvaro.sbc.api.common.constants.QueryConstants;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.LinkDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeDTO;
 import com.urjc.alumno.alvaro.sbc.api.common.dto.NodeSearchResponseDTO;
+import com.urjc.alumno.alvaro.sbc.api.common.enums.FilterEnum;
 import com.urjc.alumno.alvaro.sbc.api.common.enums.FlowEnum;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.IRIUtils;
 import com.urjc.alumno.alvaro.sbc.api.common.utils.JenaUtils;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -31,7 +33,8 @@ import static com.urjc.alumno.alvaro.sbc.api.common.constants.QueryConstants.COU
 public class GraphServiceImpl implements GraphService {
 
     @Override
-    public NodeSearchResponseDTO getNode(final String endpoint, final String iri, final String size, final boolean verifyNode) {
+    public NodeSearchResponseDTO getNode(final String endpoint, final String iri, final String size,
+                                         final boolean verifyNode, final boolean filterEdges) {
 
         if (verifyNode) {
 
@@ -42,7 +45,8 @@ public class GraphServiceImpl implements GraphService {
         final NodeSearchResponseDTO nodeSearchResponseDTO = new NodeSearchResponseDTO();
         nodeSearchResponseDTO.setOriginNode(NodeDTO.builder().iri(iri).build());
         nodeSearchResponseDTO.setLinks(new ArrayList<>());
-        nodesAction(QueryUtils.buildSelect(iri, size), endpoint, (querySolution) ->
+        nodesAction(QueryUtils.buildSelect(iri, size, filterEdges ? FilterEnum.getAllFilters() : Collections.emptyList()),
+                endpoint, (querySolution) ->
                 buildLink(
                         querySolution.get(QueryConstants.PROPERTY),
                         querySolution.get(QueryConstants.HAS_VALUE),

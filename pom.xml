@@ -10,9 +10,9 @@
 	</parent>
 	<groupId>com.urjc.alumno.alvaro</groupId>
 	<artifactId>sbc</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>sbc</name>
-	<description>Project for college exercices</description>
+	<description>Project for college exercises</description>
 	<properties>
 		<java.version>19</java.version>
 	</properties>

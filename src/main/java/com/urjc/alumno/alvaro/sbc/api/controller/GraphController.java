@@ -59,6 +59,9 @@ public class GraphController {
                     description = "Sometimes queries can be too large, so you must select a proper query size." +
                             " If no size if selected default one will be used", example = "2000", required = false)
             @RequestParam(required = false) final String size,
+            @Parameter(name = "filterEdges",
+                    description = "Use this option to filter unwanted edges as 'type' 'wikiId' ...", example = "true", required = false)
+            @RequestParam(required = false) final boolean filterEdges,
             @RequestBody final NodeSearchRequestDTO nodeSearch
     ) {
 
@@ -69,7 +72,8 @@ public class GraphController {
                                 nodeSearch.getEndpoint(),
                                 nodeSearch.getIri(),
                                 Optional.ofNullable(size).orElse(queryLimit),
-                                verifyNode
+                                verifyNode,
+                                filterEdges
                         )
         );
 
