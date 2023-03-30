@@ -16,10 +16,10 @@ import java.nio.file.Path;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/html")
+@RequestMapping
 public class HtmlController {
 
-    @GetMapping(value = "/file", produces = MediaType.TEXT_HTML_VALUE)
+    @GetMapping(produces = MediaType.TEXT_HTML_VALUE)
      ResponseEntity<String> getHtml() throws IOException {
 
         return ResponseEntity.ok(Files.readString(Path.of("src/main/resources/static/index.html")));

@@ -1,6 +1,6 @@
 server:
   servlet:
-    context-path: /sbc/api
+    context-path: /sbc
   port: 8081
 spring:
   banner:

@@ -21,7 +21,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@RequestMapping("/graphs")
+@RequestMapping("/api/graphs")
 public class GraphController {
 
     @Value("${query.limit}")
