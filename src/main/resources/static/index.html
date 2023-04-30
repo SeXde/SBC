@@ -152,6 +152,14 @@
 			align-items: center;
 			gap: 0 2px;
 		}
+
+		.hide {
+			opacity: 0;
+		}
+
+		#results-div {
+			transition: opacity 500ms;
+		}
 	</style>
 
 </head>
@@ -167,11 +175,13 @@
 
 	<main class="">
 		<div>
-			<input type="text" id="search-value" placeholder="Search in dbpedia" value="Jose_Luis"
-				list="recommendations">
+			<input type="text" id="search-value" placeholder="Search in dbpedia" list="recommendations">
 
 			<datalist id="recommendations">
-				<option value="Jose_Luis_Rodriguez">
+				<option value="Jose Luis Rodriguez Zapatero">
+				<option value="Elvis Presley"></option>
+				<option value="King Juan Carlos University"></option>
+				<option value="Artificial intelligence"></option>
 			</datalist>
 		</div>
 
@@ -189,7 +199,7 @@
 			</div>
 
 			<div>
-				<label for="auto_filter">Filter edges</label>
+				<label for="auto_filter">Filter common edges</label>
 				<input type="checkbox" id="auto_filter">
 			</div>
 		</div>
@@ -199,6 +209,9 @@
 			<input type="button" value="Clear" id="clear-button">
 		</div>
 
+		<div class="hide" id="results-div">
+			<p>No results found!</p>
+		</div>
 	</main>
 
 	<script>
@@ -375,7 +388,7 @@
 				}
 
 				if (node.name) {
-					node.name.length = Math.min(node.name.length, 10);
+					node.name.length = Math.min(node.name.length, 100);
 
 					const existingNode = graph.nodes.find((findNode) => findNode.iri === node.iri);
 					if (!existingNode) {
@@ -390,6 +403,10 @@
 		}
 
 		async function search(value, fullIri) {
+			toggleLoading(true);
+
+			value = value?.replaceAll(' ', '_');
+
 			if (fullIri) {
 				const node = graph.nodes.find((node) => node.iri === fullIri);
 
@@ -403,8 +420,6 @@
 			const size = document.getElementById("size_options").value;
 			const filterEdges = document.getElementById("auto_filter").checked;
 
-			console.log(size, filterEdges);
-
 			const response = await requestApi(`?${!fullIri ? 'verifyNode=true' : 'verifyNode=false'}&size=${size}&filterEdges=${filterEdges}`, {
 				endpoint: "http://dbpedia.org/sparql",
 				iri: fullIri ? fullIri : `http://dbpedia.org/resource/${value}`,
@@ -417,6 +432,8 @@
 
 			const { links, originNode } = await response.json();
 			links.forEach((link) => add(originNode, link, link.nodes, value));
+
+			toggleLoading(false);
 		}
 
 		async function requestApi(params, body) {
@@ -431,7 +448,26 @@
 		}
 
 		function handleError() {
+			toggleLoading(false);
 
+			document.getElementById('results-div').classList.remove('hide');
+
+			setTimeout(() => {
+				document.getElementById('results-div').classList.add('hide');
+			}, 5000);
+		}
+
+
+		function toggleLoading(isLoading) {
+			const button = document.getElementById('search-button');
+
+			if (isLoading) {
+				button.value = 'Loading';
+				button.disabled = true
+			} else {
+				button.value = 'Search';
+				button.disabled = false;
+			}
 		}
 
 		document.getElementById("search-value").addEventListener("keypress", (e) => {
@@ -446,7 +482,7 @@
 			search(searchWord);
 		});
 
-		document.getElementById("clear-button", () => {
+		document.getElementById("clear-button").addEventListener('mousedown', () => {
 			graph.nodes = [];
 			graph.links = [];
 
